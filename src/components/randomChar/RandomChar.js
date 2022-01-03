@@ -1,4 +1,4 @@
-import { Component } from 'react/cjs/react.production.min';
+import { Component } from "react";
 import './randomChar.scss';
 import MarvelService from '../../services/MarvelService'
 import mjolnir from '../../resources/img/mjolnir.png';
@@ -6,10 +6,7 @@ import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
 
 class RandomChar extends Component {
-    constructor(props) {
-        super(props);
-        this.updateCharacter();
-    }
+
 
     state = {
         character: {},
@@ -19,11 +16,28 @@ class RandomChar extends Component {
 
     marvelService = new MarvelService();
 
+    componentDidMount() {
+        this.updateCharacter();
+        // this.timerId = setInterval(this.updateCharacter, 3000);
+        console.log('mount');
+        
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.timerId);
+    }
+
     onCharacterLoaded = (character) => {
         this.setState({
             character,
             loading: false
         });
+    }
+
+    onCharactersLoading = () => {
+        this.setState({
+            loading: true
+        })
     }
 
     onError = () => {
@@ -35,6 +49,7 @@ class RandomChar extends Component {
 
     updateCharacter = () => {
         const id = Math.floor(Math.random() * (1011400 - 1011000) + 1011000);
+        this.onCharactersLoading();
         this.marvelService
             .getCharacter(id)
             .then(this.onCharacterLoaded)
@@ -62,7 +77,7 @@ class RandomChar extends Component {
                     <p className="randomchar__title">
                         Or choose another one
                     </p>
-                    <button className="button button__main">
+                    <button onClick={this.updateCharacter} className="button button__main">
                         <div className="inner">try it</div>
                     </button>
                     <img src={mjolnir} alt="mjolnir" className="randomchar__decoration"/>
@@ -76,9 +91,14 @@ const View = ({character}) => {
 
     const {name, description, thumbnail, homepage, wiki} = character;
 
+    let imageStyle = {'objectFit' : 'cover'};
+    if (thumbnail === 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg') {
+        imageStyle = {'objectFit' : 'contain'}
+    }
+
     return (
         <div className="randomchar__block">
-        <img src={thumbnail} alt="Random character" className="randomchar__img"/>
+        <img src={thumbnail} alt="Random character" className="randomchar__img" style={imageStyle}/>
         <div className="randomchar__info">
             <p className="randomchar__name">{name}</p>
             <p className="randomchar__descr">
