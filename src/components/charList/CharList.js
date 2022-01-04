@@ -9,22 +9,48 @@ class CharList extends Component{
     state = {
         characters: [],
         loading: true,
-        error: false
+        error: false,
+        newItemLoading: false,
+        offset: 210,
+        charactersEnded: false
     }
 
     marvelService = new MarvelService();
 
     componentDidMount() {
-        this.marvelService.getAllCharacters()
-            .then(this.onCharactersLoaded)
-            .catch(this.onError)
+        this.onRequest();
     }
 
-    onCharactersLoaded = (characters) => {
+    onRequest = (offset) => {
+        this.onCharactersListLoading();
+        this.marvelService.getAllCharacters(offset)
+        .then(this.onCharactersLoaded)
+        .catch(this.onError)
+    }
+
+    onCharactersListLoading = () => {
         this.setState({
-            characters,
-            loading: false
+            newItemLoading: true
         })
+    }
+
+    onCharactersLoaded = (newCharacters) => {
+
+        let isEnded = false;
+        if(newCharacters.length < 9) {
+            isEnded = true;
+        }
+
+
+
+        this.setState(({characters, offset}) => (
+            {
+                characters: [...characters, ...newCharacters],
+                loading: false,
+                newItemLoading: false,
+                offset: offset + 9,
+            }
+        ))
     }
 
     onError = () => {
@@ -62,7 +88,7 @@ class CharList extends Component{
 
     render() {
 
-        const {characters, loading, error} = this.state;
+        const {characters, loading, error, offset, newItemLoading, charactersEnded} = this.state;
 
         const items = this.renderItems(characters);
 
@@ -75,7 +101,11 @@ class CharList extends Component{
                     {errorMessage}
                     {spinner}
                     {content}
-                <button className="button button__main button__long">
+                <button 
+                className="button button__main button__long"
+                disabled={newItemLoading}
+                style={{'display': charactersEnded? 'none' : 'block'}}
+                onClick={() => this.onRequest(offset)}>
                     <div className="inner">load more</div>
                 </button>
             </div>
